@@ -40,7 +40,7 @@ def web_getip():
 
 while 1:
     try:
-        ip=str(input("IP: "))
+        ip=str(input("IP [127.0.0.1]: "))
         port=int(input("Port [1-65535]: "))
         if port<1 or port>65535:
             continue
@@ -51,20 +51,38 @@ while 1:
     except ValueError:
         continue
 host_server = "127.0.0.1"
-port_server = 12345
+port_server_1 = 12345
+port_server_2 = 12346
 soc = socket.socket()
-soc.connect((host_server,port_server))
+soc.connect((str(host_server),int(port_server_1)))
+print(host_server)
+print(port_server_1)
 soc.send(compress(b"__get_ip__"))
 ip = str(decompress(soc.recv(512)).decode())
-print("IP Forward: {}".format(ip))
+try:
+	if len(ip.split(":")[0].split("."))!=4 or int(ip.split(":")[1])>65535 or int(ip.split(":")[1])<1 or ":" not in ip:
+		int("a")
+except ValueError:
+	soc.close()
+	print("Server Error!")
+	exit()
+soc2 = socket.socket()
+soc2.connect((host_server,port_server_2))
+soc2.send(compress(ip.encode()))
+if decompress(soc2.recv(512)).decode()!="OK!":
+	soc2.close()
+	print("Server Error!")
+	exit()
+print("ok2")
 Thread(target=web_getip,args=()).start()
 print("WEB IP Forward: http://127.0.0.1:4040")
-# while 1:
+print("IP Forward: {}".format(ip))
+while 1:
 #     a,b = soc.accept()
 #     try:
 #         des = socket.socket()
 #         des.connect((str(ip),int(port)))
 #     except KeyboardInterrupt:
-#         pass
+        pass
 #     Thread(target=forward,args=(soc,des,b[0],b[1])).start()
 #     Thread(target=forward,args=(des,soc,b[0],b[1])).start()
